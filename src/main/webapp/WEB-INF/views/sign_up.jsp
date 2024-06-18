@@ -1,10 +1,9 @@
-<%@ page contentType="text/html; charset=utf-8" %>
-<%@ page import="java.sql.*" %>
-<%@ page import="org.json.JSONObject" %>
+<%@ page contentType="text/html; charset=utf-8"%>
 <html>
 <head>
     <title>회원가입</title>
     <style>
+
         .signUpForm {
             display: flex;
             flex-direction: column;
@@ -34,7 +33,7 @@
             font-weight: bold;
         }
 
-        .signUpForm input[type="text"],
+        .signUpForm input[type="text"], 
         .signUpForm input[type="password"] {
             width: calc(100% - 20px);
             padding: 8px;
@@ -56,7 +55,7 @@
         .signUpForm input[type="submit"]:hover {
             background-color: gray;
             border: solid gray 3px;
-            color: white;
+            color:white; /* 마우스 오버 시 색상 변경 */
         }
 
         .loginLink {
@@ -73,45 +72,9 @@
             text-decoration: underline;
         }
     </style>
-    <script>
-        $(document).ready(function () {
-            $('#name').on('input', function () {
-                var userName = $(this).val();
-                $.ajax({
-                    url: '<%= request.getContextPath() %>/signUp',
-                    method: 'GET',
-                    data: { checkName: userName },
-                    success: function (response) {
-                        var data = JSON.parse(response);
-                        if (data.isDuplicate) {
-                            alert('이 사용자 이름은 이미 존재하거나 "익명"일 수 없습니다.');
-                            $('#name').focus();
-                        }
-                    }
-                });
-            });
-
-            $('form').on('submit', function (e) {
-                var userName = $('#name').val();
-                $.ajax({
-                    url: '<%= request.getContextPath() %>/signUp',
-                    method: 'GET',
-                    data: { checkName: userName },
-                    async: false, // 동기적으로 처리하여 폼 제출 전에 검사
-                    success: function (response) {
-                        var data = JSON.parse(response);
-                        if (data.isDuplicate) {
-                            alert('이 사용자 이름은 이미 존재하거나 "익명"일 수 없습니다.');
-                            e.preventDefault();
-                        }
-                    }
-                });
-            });
-        });
-    </script>
 </head>
 <body>
-    <%@ include file="nav.jsp" %>
+    <%@ include file="nav.jsp"%>
     <form method="post" action="/signUp" class="signUpForm">
         <h2>회원가입</h2>
         <p>
