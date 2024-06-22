@@ -73,13 +73,14 @@
                     userItem.appendChild(p);
                     userItem.appendChild(a);
                     userListContainer.appendChild(userItem);
+                    // 왜 인지 모르겠지만 foreach가 작동하지 않아, 자바스크립트로 구현했습니다.
                 });
             </script>
         </div>
         <a href="/" class="follow">메인으로</a>
     </div>
     <script>
-        
+
     </script>
 </body>
 </html>
