@@ -62,11 +62,11 @@
             String userName = (String) session.getAttribute("userName");
             if (userName != null) {
         %>
-            <a href="/mvc_out">LOG OUT</a>
+            <a href="/logout">LOG OUT</a>
         <%
             } else {
         %>
-            <a href="/mvc">LOG IN</a>
+            <a href="/login">LOG IN</a>
         <%
             }
         %>

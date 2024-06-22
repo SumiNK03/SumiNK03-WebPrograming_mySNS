@@ -78,5 +78,8 @@
         </div>
         <a href="/" class="follow">메인으로</a>
     </div>
+    <script>
+        
+    </script>
 </body>
 </html>

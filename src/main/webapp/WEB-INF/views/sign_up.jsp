@@ -75,7 +75,7 @@
 </head>
 <body>
     <%@ include file="nav.jsp"%>
-    <form method="post" action="/signUp" class="signUpForm">
+    <form method="post" action="/signUp" class="signUpForm" onsubmit="return check()">
         <h2>회원가입</h2>
         <p>
             <label for="name">사용자 이름:</label>
@@ -86,11 +86,48 @@
             <input type="password" id="password" name="password" required placeholder="password">
         </p>
         <p>
-            <input type="submit" value="회원가입">
+            <input type="submit" value="회원가입" onclick="check()">
         </p>
         <div class="loginLink">
             <p>계정이 있으신가요? <a href="/mvc">로그인</a></p>
         </div>
     </form>
+     <script>
+        async function checkUserName(event) {
+            var username = document.getElementById("name").value.trim();
+            
+            if (username === "익명") {
+                alert("사용할 수 없는 사용자 이름입니다.");
+                event.preventDefault(); // 폼 제출 막기
+                return;
+            }
+            
+            try {
+                var response = await fetch('/checkUserName', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        name: username
+                    })
+                });
+                
+                var result = await response.text();
+                
+                if (result === "false") {
+                    alert("이미 존재하는 사용자 이름입니다.");
+                    event.preventDefault(); // 폼 제출 막기
+                } else if (result === "error") {
+                    alert("중복 검사 중 오류가 발생하였습니다.");
+                    event.preventDefault(); // 폼 제출 막기
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("중복 검사 중 오류가 발생하였습니다.");
+                event.preventDefault(); // 폼 제출 막기
+            }
+        }
+    </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Login Success</title>
+    <title>로그인 성공</title>
     <style>
 
         /* 로그인 성공 컨테이너 스타일 */

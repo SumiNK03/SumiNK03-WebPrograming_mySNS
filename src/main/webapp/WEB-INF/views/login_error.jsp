@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8"%>
 <html>
 <head>
-<title>MVC</title>
+<title>로그인 실패</title>
 <style>
 	.cover {
         margin-top: 10px;
@@ -10,9 +10,9 @@
 </style>
 </head>
 <body>
-	<%@ include file="mvc.jsp"%>
+	<%@ include file="login.jsp"%>
 	<div class="cover">
-	<p>아이디와 비밀번호를 확인해주세요</p>
+	<p>사용자 이름과 비밀번호를 확인해주세요</p>
 	</div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8"%>
 <html>
 <head>
-    <title>MVC</title>
+    <title>로그인</title>
     <style>
 
         /* 로그인 폼 스타일 */
@@ -67,7 +67,7 @@
 </head>
 <body>
     <%@ include file="nav.jsp"%>
-    <form method="post" action="/Controller" class="loginForm">
+    <form method="post" action="/login" class="loginForm">
         <h2>로그인</h2>
         <p>
             <input type="text" name="name" placeholder="아이디" required>

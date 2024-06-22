@@ -1,5 +1,6 @@
 package com.test.hello.controller;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,9 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.test.hello.model.LoginBean;
-import java.sql.Connection;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -35,12 +36,12 @@ public class MyController {
     }
     
 
-    @GetMapping("/mvc")
+    @GetMapping("/login")
     public String loginForm() {
-        return "mvc"; // 로그인 폼 페이지
+        return "login"; // 로그인 폼 페이지
     }
 
-    @PostMapping("/Controller")
+    @PostMapping("/login")
     public String login(@RequestParam("name") String name,
                         @RequestParam("password") String password,
                         Model model, HttpSession session) {
@@ -50,17 +51,17 @@ public class MyController {
 
         if (bean.validate()) {
             session.setAttribute("userName", bean.getName()); // 세션에 사용자 이름 저장
-            return "mvc_success"; // 로그인 성공 시 리다이렉트
+            return "login_success"; // 로그인 성공 시 리다이렉트
         } else {
             model.addAttribute("loginError", "이름 또는 비밀번호가 잘못되었습니다.");
-            return "mvc_error"; // 로그인 실패 시 에러 페이지
+            return "login_error"; // 로그인 실패 시 에러 페이지
         }
     }
 
-    @GetMapping("/mvc_out")
+    @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate(); // 세션 무효화
-        return "redirect:/"; // 로그인 화면으로 리다이렉트
+        return "redirect:/"; 
     }
 
     @GetMapping("/signUp")
@@ -92,7 +93,7 @@ public class MyController {
         }
 
         // 회원가입 성공 시 로그인 페이지로 리다이렉트
-        return "redirect:/mvc";
+        return "redirect:/login";
     }
 
     @GetMapping("/users")
@@ -111,7 +112,6 @@ public class MyController {
                 ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
                     String userName = resultSet.getString("name");
-                    // 각 사용자 이름을 따옴표로 감싸서 리스트에 추가
                     users.add("'" + userName + "'");
                 }
             }
@@ -127,5 +127,34 @@ public class MyController {
         // 사용자 목록 페이지로 이동
         return "users";
     }
+
+     @PostMapping("/checkUserName")
+    @ResponseBody
+    public String checkUserName(@RequestParam("name") String name) {
+        String url = "jdbc:mysql://localhost:3306/testdb";
+        String dbUsername = "root";
+        String dbPassword = "0417";
+
+        try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {
+            String sql = "SELECT COUNT(*) FROM student WHERE name = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, name);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next() && resultSet.getInt(1) > 0) {
+                    return "false"; // 중복 사용자 이름이 존재함
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "error";
+        }
+        return "true"; // 중복 사용자 이름이 없음
+    }
+
+    @GetMapping("/error")
+    public String ErrorPage(@RequestParam String param) {
+        return "error";
+    }
+    
     
 }
