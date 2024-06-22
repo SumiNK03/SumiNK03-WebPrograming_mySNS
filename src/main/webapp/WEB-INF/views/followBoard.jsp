@@ -241,7 +241,6 @@
 <%@ include file="nav.jsp"%>
 <div class="boardCover">
     <h2>팔로우 게시물 목록</h2>
-    <a href="writePost">글쓰기</a>
 </div>
 <c:forEach var="post" items="${posts}">
     <div class="p">

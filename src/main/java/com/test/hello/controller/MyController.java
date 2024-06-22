@@ -14,7 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.test.hello.model.LoginBean;
 
@@ -74,6 +73,10 @@ public class MyController {
                          @RequestParam("password") String password,
                          Model model) {
 
+        if (name.equals("익명") || !checkUserName(name)){
+            return "sign_up_error";
+        }
+
         // JDBC를 사용하여 회원 정보를 데이터베이스에 저장
         String url = "jdbc:mysql://localhost:3306/testdb";
         String dbUsername = "root";
@@ -128,9 +131,7 @@ public class MyController {
         return "users";
     }
 
-     @PostMapping("/checkUserName")
-    @ResponseBody
-    public String checkUserName(@RequestParam("name") String name) {
+    private boolean checkUserName(String name) {
         String url = "jdbc:mysql://localhost:3306/testdb";
         String dbUsername = "root";
         String dbPassword = "0417";
@@ -141,14 +142,14 @@ public class MyController {
                 statement.setString(1, name);
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next() && resultSet.getInt(1) > 0) {
-                    return "false"; // 중복 사용자 이름이 존재함
+                    return false; // 중복 사용자 이름이 존재함
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return "error";
+            return false;
         }
-        return "true"; // 중복 사용자 이름이 없음
+        return true; // 중복 사용자 이름이 없음
     }
 
     @GetMapping("/error")
