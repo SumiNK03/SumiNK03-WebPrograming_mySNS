@@ -57,8 +57,10 @@
             <script>
                 var users = ${users};
                 var userListContainer = document.querySelector(".userList");
+                var isFollowing = ${isfollowing};
+                var currentUser = '<%= session.getAttribute("userName") %>';
 
-                users.forEach(function(user) {
+                users.forEach(function(user, index) {
                     var userItem = document.createElement("div");
                     userItem.classList.add("userItem");
 
@@ -69,6 +71,10 @@
                     a.href = "/follow?followeeName=" + user;
                     a.textContent = "팔로우 / 언팔로우";
                     a.className = "follow";
+
+                    if(currentUser != null){
+                        a.textContent = isFollowing[index] ? "언팔로우" : "팔로우";
+                    }
 
                     userItem.appendChild(p);
                     userItem.appendChild(a);

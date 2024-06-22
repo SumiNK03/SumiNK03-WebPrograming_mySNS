@@ -24,6 +24,10 @@ public class MyController {
 
     private final LoginBean loginBean;
 
+    String url = "jdbc:mysql://localhost:3306/testdb";
+    String dbUsername = "root";
+    String dbPassword = "0417";
+
     @Autowired
     public MyController(LoginBean loginBean) {
         this.loginBean = loginBean;
@@ -50,16 +54,16 @@ public class MyController {
 
         if (bean.validate()) {
             session.setAttribute("userName", bean.getName()); // 세션에 사용자 이름 저장
-            return "login_success"; // 로그인 성공 시 리다이렉트
+            return "login_success"; // 로그인 성공 
         } else {
             model.addAttribute("loginError", "이름 또는 비밀번호가 잘못되었습니다.");
-            return "login_error"; // 로그인 실패 시 에러 페이지
+            return "login_error"; // 로그인 실패 
         }
     }
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // 세션 무효화
+        session.invalidate(); 
         return "redirect:/"; 
     }
 
@@ -77,11 +81,6 @@ public class MyController {
             return "sign_up_error";
         }
 
-        // JDBC를 사용하여 회원 정보를 데이터베이스에 저장
-        String url = "jdbc:mysql://localhost:3306/testdb";
-        String dbUsername = "root";
-        String dbPassword = "0417";
-
         try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {
             String sql = "INSERT INTO student (name, password) VALUES (?, ?)";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -91,23 +90,17 @@ public class MyController {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            model.addAttribute("signUpError", "회원 가입 중 오류가 발생하였습니다.");
-            return "sign_up"; // 회원가입 폼 페이지로 리턴
+            return "sign_up"; // 회원가입 폼 페이지
         }
-
-        // 회원가입 성공 시 로그인 페이지로 리다이렉트
         return "redirect:/login";
     }
 
     @GetMapping("/users")
-    public String userList(Model model) {
-    
-        // JDBC를 사용하여 DB에서 사용자 목록을 조회
-        String url = "jdbc:mysql://localhost:3306/testdb";
-        String dbUsername = "root";
-        String dbPassword = "0417";
+    public String userList(Model model, HttpSession session) {
     
         List<String> users = new ArrayList<>();
+        List<Boolean> isfollow = new ArrayList<>();
+        String currentUser = (String) session.getAttribute("userName");
     
         try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {
             String sql = "SELECT name FROM student";
@@ -116,26 +109,21 @@ public class MyController {
                 while (resultSet.next()) {
                     String userName = resultSet.getString("name");
                     users.add("'" + userName + "'");
+                    isfollow.add(isFollowing(currentUser, userName, conn));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            model.addAttribute("usersError", "사용자 목록을 불러오는 중 오류가 발생하였습니다.");
-            return "error"; // 오류 페이지로 리턴
+            return "error"; // 오류 페이지
         }
-    
-        // 모델에 사용자 목록 추가
+
+        model.addAttribute("isfollowing", isfollow);
         model.addAttribute("users", users);
     
-        // 사용자 목록 페이지로 이동
         return "users";
     }
 
     private boolean checkUserName(String name) {
-        String url = "jdbc:mysql://localhost:3306/testdb";
-        String dbUsername = "root";
-        String dbPassword = "0417";
-
         try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {
             String sql = "SELECT COUNT(*) FROM student WHERE name = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
@@ -150,6 +138,21 @@ public class MyController {
             return false;
         }
         return true; // 중복 사용자 이름이 없음
+    }
+
+    // 팔로우 여부 확인 메서드
+    private boolean isFollowing(String followerName, String followeeName, Connection conn) throws SQLException {
+        String sql = "SELECT COUNT(*) AS count FROM follow WHERE follower_name = ? AND followee_name = ?";
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, followerName);
+            statement.setString(2, followeeName);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                int count = resultSet.getInt("count");
+                return count > 0;
+            }
+        }
+        return false;
     }
 
     @GetMapping("/error")

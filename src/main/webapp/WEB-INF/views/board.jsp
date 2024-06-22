@@ -117,7 +117,7 @@
             border-radius: 10px;
             margin-bottom:10px;
         }
-        .commentActions button {
+        .commentActions button, .commentActions .cdelete img {
             width:20px;
             height:20px;
             border: none;
@@ -138,6 +138,9 @@
         }
         .commentActions .cdislike:hover {
             background-image: url(../img/dislike_hover.png);
+        }
+        .commentActions .cdelete img:hover {
+            content: url(./img/delete_hover.png);
         }
         .comments .comment {
             width: 100%;
@@ -251,7 +254,7 @@
         <p class="author">${post.authorName}</p>
         </div>
         <c:if test="${post.authorName ne '익명'}">
-        <a href="/follow?followeeName=${post.authorName}" class="follow"> 팔로우 / 언팔로우</a>
+        <a href="/follow?followeeName=${post.authorName}" class="follow" id="follow"> 팔로우 / 언팔로우</a>
         </c:if>
         <div class="titleCover"><h1>${post.title}</h1></div>
         <div class="contentCover"><p>${post.content}</p></div>
@@ -273,6 +276,7 @@
                     <span id="commentLikeCount-${comment.id}">${comment.likes}</span>
                     <button class="clike" onclick="toggleCommentLike(${comment.id})"></button>
                     <button class="cdislike" onclick="toggleCommentDislike(${comment.id})"></button>
+                     <a class="cdelete" href="/comments/delete/${comment.id}"><img src="./img/delete.png"></a>
                 </div>
                 </div>
             </c:forEach>

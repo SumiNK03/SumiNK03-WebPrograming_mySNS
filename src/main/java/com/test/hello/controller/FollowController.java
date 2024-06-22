@@ -6,14 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import jakarta.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class FollowController {
@@ -28,7 +27,6 @@ public class FollowController {
 
     @GetMapping("/follow")
     public String followUser(@RequestParam("followeeName") String followeeName, Model model) {
-        // 현재 로그인된 사용자 이름 가져오기
         String followerName = (String) httpSession.getAttribute("userName");
         
         // userName이 null이면 팔로우 동작 수행하지 않음
@@ -36,9 +34,14 @@ public class FollowController {
             return "follow_error"; // 에러 페이지로 리턴
         }
 
+        if(followerName.equals(followeeName)){
+            return "follow_same_Error";
+        }
+
         try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {
             // 팔로우 여부 확인
             boolean isFollowing = isFollowing(followerName, followeeName, conn);
+
 
             if (!isFollowing) {
                 // 팔로우 관계 추가
@@ -49,7 +52,7 @@ public class FollowController {
                     statement.executeUpdate();
                 }
             } else {
-                // 이미 팔로우 중인 경우, 팔로우 취소
+                // 이미 팔로우 중인 경우 팔로우 취소
                 String sql = "DELETE FROM follow WHERE follower_name = ? AND followee_name = ?";
                 try (PreparedStatement statement = conn.prepareStatement(sql)) {
                     statement.setString(1, followerName);

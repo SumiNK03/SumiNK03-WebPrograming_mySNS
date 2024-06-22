@@ -41,9 +41,9 @@
 <body>
     <%@ include file="nav.jsp"%>
     <div class="cover">
-        <h1>로그인이 필요합니다.</h1>
-        <p>팔로우 기능은 로그인 후 이용해 주세요</p>
-        <a href="/login">로그인</a>
+        <h1>팔로우 에러</h1>
+        <p>자기 자신은 팔로우할 수 없습니다.</p>
+        <a href="/users">사용자 목록으로</a>
     </div>
 </body>
 </html>

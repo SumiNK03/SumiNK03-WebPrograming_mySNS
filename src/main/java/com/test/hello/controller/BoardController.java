@@ -1,26 +1,36 @@
 package com.test.hello.controller;
 
-import com.test.hello.model.Post;
-
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.test.hello.model.Comment;
+import com.test.hello.model.Post;
+
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class BoardController {
@@ -55,10 +65,10 @@ public class BoardController {
             pstmt.setString(1, title);
             pstmt.setString(2, content);
             pstmt.setString(3, fileName);
-            pstmt.setString(4, authorName); // 작성자 이름 추가
+            pstmt.setString(4, authorName); 
             pstmt.executeUpdate();
 
-            // 파일 업로드 처리 코드
+            // 파일 업로드 
             if (!file.isEmpty()) {
                 String uploadDir = servletContext.getRealPath("/") + "uploads";
                 File uploadDirFile = new File(uploadDir);
@@ -100,7 +110,6 @@ public class BoardController {
             Model model
     ) {
         if (id == null) {
-            // id 파라미터가 없는 경우 처리
             model.addAttribute("error", "게시물 ID가 필요합니다.");
             return "editPost";
         }
@@ -109,7 +118,7 @@ public class BoardController {
         if (file != null && !file.isEmpty()) {
             fileName = file.getOriginalFilename();
             try {
-                String uploadDir = servletContext.getRealPath("/") + "uploads"; // servletContext로 파일 경로 가져오기
+                String uploadDir = servletContext.getRealPath("/") + "uploads"; 
     
                 File uploadDirFile = new File(uploadDir);
                 if (!uploadDirFile.exists()) {
@@ -118,8 +127,6 @@ public class BoardController {
     
                 file.transferTo(new File(uploadDirFile, fileName)); // 파일 업로드
             } catch (IOException e) {
-                e.printStackTrace();
-                // 파일 업로드 실패 시 처리
                 model.addAttribute("error", "파일 업로드 실패");
                 return "editPost";
             }
@@ -130,16 +137,15 @@ public class BoardController {
             pstmt.setString(1, updatedPost.getTitle());
             pstmt.setString(2, updatedPost.getContent());
             pstmt.setString(3, fileName);
-            pstmt.setInt(4, id); // id 파라미터 사용
+            pstmt.setInt(4, id); // id 
             pstmt.executeUpdate(); // 게시물 업데이트
         } catch (SQLException e) {
             e.printStackTrace();
-            // 데이터베이스 업데이트 실패 시 처리
             model.addAttribute("error", "데이터베이스 업데이트 실패");
             return "editPost";
         }
     
-        return "redirect:/board"; // 게시판 페이지로 리다이렉트
+        return "redirect:/board"; 
     }
     
 
@@ -158,7 +164,6 @@ public void downloadFile(@RequestParam("id") int id, HttpServletResponse respons
                     response.setContentType("application/octet-stream");
                     response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
 
-                    // 파일 내용을 response 스트림으로 전송
                     try (InputStream inStream = new FileInputStream(file); OutputStream outStream = response.getOutputStream()) {
                         byte[] buffer = new byte[4096];
                         int bytesRead;
@@ -185,11 +190,9 @@ public void downloadFile(@RequestParam("id") int id, HttpServletResponse respons
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
             return "{\"success\": false}";
         }
 
-        // 업데이트된 likes 값 반환
         int likes = 0;
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement("SELECT likes FROM posts WHERE id = ?")) {
@@ -200,7 +203,6 @@ public void downloadFile(@RequestParam("id") int id, HttpServletResponse respons
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             return "{\"success\": false}";
         }
 
@@ -220,7 +222,6 @@ public void downloadFile(@RequestParam("id") int id, HttpServletResponse respons
             return "{\"success\": false}";
         }
 
-        // 업데이트된 likes 값 반환
         int likes = 0;
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement("SELECT likes FROM posts WHERE id = ?")) {
@@ -256,11 +257,115 @@ public String deletePost(@RequestParam("id") int id) {
     } catch (SQLException e) {
         e.printStackTrace();
         System.out.println("삭제 실패");
-        // 삭제 실패 시 처리 (로그 추가 등)
     }
 
-    return "redirect:/board"; // 삭제 후 게시판 페이지로 리다이렉트
+    return "redirect:/board"; 
 }
 
+ @GetMapping("/board")
+    public String board(Model model, HttpSession session) {
+    List<Post> posts = getAllPostsWithComments();
+    Collections.reverse(posts);
+    model.addAttribute("posts", posts);
+    return "board";
+    }
+
+    @GetMapping("/followBoard")
+public String followBoard(Model model, HttpSession session) {
+    if((String) session.getAttribute("userName") == null) {
+        return "follow_error";
+    }
+    String currentUser = (String) session.getAttribute("userName");
+
+    // 사용자의 팔로잉 게시물만 필터링
+    List<Post> allPosts = getAllPostsWithComments();
+    Collections.reverse(allPosts);
+    List<Post> filteredPosts = new ArrayList<>();
+
+    for (Post post : allPosts) {
+        // 작성자가 사용자가 팔로우하는 사용자인지 확인
+        if (isFollowing(currentUser, post.getAuthorName())) {
+            filteredPosts.add(post);
+        }
+    }
+
+    // 필터링된 게시물 목록
+    model.addAttribute("posts", filteredPosts);
+
+    return "followBoard";
+}
+
+
+ // 사용자가 특정 사용자를 팔로우하는지 여부
+private boolean isFollowing(String currentUser, String authorName) {
+    boolean result = false;
+    String query = "SELECT COUNT(*) AS count FROM follow WHERE follower_name = ? AND followee_name = ?";
+    
+    try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+         PreparedStatement pstmt = conn.prepareStatement(query)) {
+        pstmt.setString(1, currentUser);
+        pstmt.setString(2, authorName);
+        
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                if (count > 0) {
+                    result = true; // 팔로우 중
+                }
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    
+    return result;
+}
+    
+
+// 모든 게시물과 댓글을 조회
+private List<Post> getAllPostsWithComments() {
+    List<Post> posts = new ArrayList<>();
+    String postQuery = "SELECT * FROM posts";
+    String commentQuery = "SELECT * FROM comments WHERE post_id = ?";
+    
+    try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+         PreparedStatement postStmt = conn.prepareStatement(postQuery);
+         ResultSet postRs = postStmt.executeQuery()) {
+        
+        while (postRs.next()) {
+            Post post = new Post();
+            post.setId(postRs.getInt("id"));
+            post.setTitle(postRs.getString("title"));
+            post.setContent(postRs.getString("content"));
+            post.setAuthorName(postRs.getString("author_name"));
+            post.setLikes(postRs.getInt("likes"));
+            post.setFileName(postRs.getString("file_name")); // 파일 이름 추가
+
+            // 댓글 조회
+            try (PreparedStatement commentStmt = conn.prepareStatement(commentQuery)) {
+                commentStmt.setInt(1, post.getId());
+                try (ResultSet commentRs = commentStmt.executeQuery()) {
+                    List<Comment> comments = new ArrayList<>();
+                    while (commentRs.next()) {
+                        Comment comment = new Comment();
+                        comment.setId(commentRs.getInt("id"));
+                        comment.setPostId(commentRs.getInt("post_id"));
+                        comment.setContent(commentRs.getString("content"));
+                        comment.setLikes(commentRs.getInt("likes"));
+                        comment.setAuthorName(commentRs.getString("author_name"));
+                        comments.add(comment);
+                    }
+                    post.setComments(comments); // 댓글 설정
+                }
+            }
+
+            posts.add(post);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    
+    return posts;
+}
 
 }
