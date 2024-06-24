@@ -65,7 +65,7 @@ CREATE TABLE `follow` (
 
 LOCK TABLES `follow` WRITE;
 /*!40000 ALTER TABLE `follow` DISABLE KEYS */;
-INSERT INTO `follow` VALUES (13,'남궁수민','홍길동'),(14,'남궁수민','남궁수민');
+INSERT INTO `follow` VALUES (13,'남궁수민','홍길동'),(14,'남궁수민','남궁효민');
 /*!40000 ALTER TABLE `follow` ENABLE KEYS */;
 UNLOCK TABLES;
 
